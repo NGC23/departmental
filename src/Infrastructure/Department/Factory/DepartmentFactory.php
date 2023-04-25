@@ -19,6 +19,7 @@ class DepartmentFactory {
      * @param Team $team
      * @param StaffMember[] $newStaffMembers
      * @return Department
+     * @throws DuplicateStaffMemberException
      */
     public function create(
         string $name, 
@@ -28,17 +29,17 @@ class DepartmentFactory {
 
         $oldStaffMembers = $team->getStaffMembers();
 
-        $staffMembers[] = array_map(function(StaffMemeber $staff) use ($newStaffMembers){
-            foreach($newStaffMembers as $staffMember) {
-                if($staffMember->getName() === $staff->getName()) {
-                    throw new DuplicateStaffMemberException("Staff member {$staff->getName()} already exists!");
+        if(count($newStaffMembers) > 0) {
+            foreach($oldStaffMembers as $oldStaff) {
+                foreach($newStaffMembers as $staffMember) {
+                    if($oldStaff->getName() === $staffMember->getName()) {
+                        throw new DuplicateStaffMemberException("Staff member {$staffMember->getName()} already exists!");
+                    }
                 }
-                return new StaffMemeber(
-                    $staffMember->getName(), 
-                    $staffMember->getType()
-                );
             }
-        },  $oldStaffMembers);
+        }
+
+        $staffMembers = array_merge($oldStaffMembers, $newStaffMembers);
 
         $team = $team->withStaffMembers($staffMembers);
 
@@ -46,6 +47,5 @@ class DepartmentFactory {
             $name, 
             $team
         );
-
     }
 }
